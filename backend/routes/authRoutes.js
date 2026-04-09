@@ -4,6 +4,17 @@ const { body, validationResult } = require('express-validator');
 const { registerUser, loginUser, getMe, updateProfile, logoutUser, refreshAccessToken } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 
+
+// login and register Rate Limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message:{
+    message: 'Too many requests from this IP, please try again later.',
+  }
+});
+app.use('/api/', limiter);
+
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -19,7 +30,7 @@ router.post('/register', [
   handleValidationErrors
 ], registerUser);
 
-router.post('/login', [
+router.post('/login', loginLimiter, [
   body('email', 'Please include a valid email').isEmail(),
   body('password', 'Password is required').exists(),
   handleValidationErrors

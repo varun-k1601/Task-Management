@@ -45,16 +45,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-// Rate Limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 5,
-  message:{
-    message: 'Too many requests from this IP, please try again later.',
-  }
-});
-app.use('/api/', limiter);
-
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/tasks', require('./routes/taskRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
