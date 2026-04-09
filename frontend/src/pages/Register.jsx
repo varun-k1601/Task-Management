@@ -4,8 +4,8 @@ import AuthContext from '../context/AuthContext';
 import { UserPlus } from 'lucide-react';
 
 const Register = () => {
-  const [formData, setFormData] = useState({ name: '', email: '', password: '' });
-  const { register, error } = useContext(AuthContext);
+  const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' });
+  const { register, error, setError } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -14,6 +14,10 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
     try {
       await register(formData.name, formData.email, formData.password);
       navigate('/');
@@ -57,6 +61,18 @@ const Register = () => {
               name="password" 
               className="input-field" 
               value={formData.password} 
+              onChange={handleChange} 
+              required 
+              minLength="6"
+            />
+          </div>
+          <div className="input-group">
+            <label className="input-label">Confirm Password</label>
+            <input 
+              type="password" 
+              name="confirmPassword" 
+              className="input-field" 
+              value={formData.confirmPassword} 
               onChange={handleChange} 
               required 
               minLength="6"
