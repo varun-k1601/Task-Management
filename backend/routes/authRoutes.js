@@ -3,17 +3,17 @@ const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const { registerUser, loginUser, getMe, updateProfile, logoutUser, refreshAccessToken } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
+const rateLimit = require('express-rate-limit');
 
 
 // login and register Rate Limiting
-const limiter = rateLimit({
+const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  max: 10,
   message:{
     message: 'Too many requests from this IP, please try again later.',
   }
 });
-app.use('/api/', limiter);
 
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
