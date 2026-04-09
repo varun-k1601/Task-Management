@@ -2,18 +2,21 @@ import { useState, useEffect } from 'react';
 import api from '../api';
 import { Plus, Trash2, Edit3, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
 import TaskFilterBar from '../components/TaskFilterBar';
+import Pagination from '../components/Pagination';
 
 const UserDashboard = () => {
   const [tasks, setTasks] = useState([]);
   const [formData, setFormData] = useState({ title: '', description: '', status: 'pending', priority: 'medium', dueDate: '' });
   const [isEditing, setIsEditing] = useState(null);
-  const [filters, setFilters] = useState({ search: '', status: 'all', priority: 'all', sortBy: 'newest' });
+  const [filters, setFilters] = useState({ search: '', status: 'all', priority: 'all', sortBy: 'newest', page: 1 });
+  const [totalPages, setTotalPages] = useState(1);
 
   const fetchTasks = async () => {
     try {
       const queryParams = new URLSearchParams(filters).toString();
       const { data } = await api.get(`/tasks?${queryParams}`);
       setTasks(data.data || data);
+      if (data.pagination) setTotalPages(data.pagination.pages);
     } catch (err) {
       console.error('Fetch tasks error:', err);
     }
@@ -217,6 +220,7 @@ const UserDashboard = () => {
           </div>
         )}
       </div>
+      <Pagination page={filters.page || 1} totalPages={totalPages} onPageChange={(newPage) => setFilters({ ...filters, page: newPage })} />
     </div>
   );
 };

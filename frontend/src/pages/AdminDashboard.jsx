@@ -13,11 +13,16 @@ import {
 } from "lucide-react";
 import UserDashboard from "./UserDashboard";
 import TaskFilterBar from "../components/TaskFilterBar";
+import Pagination from "../components/Pagination";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("users"); // 'users' or 'tasks'
   const [users, setUsers] = useState([]);
   const [tasks, setTasks] = useState([]);
+
+  const [userPage, setUserPage] = useState(1);
+  const [userTotalPages, setUserTotalPages] = useState(1);
+  const [taskTotalPages, setTaskTotalPages] = useState(1);
 
   const [editingUser, setEditingUser] = useState(null);
   const [editingTask, setEditingTask] = useState(null);
@@ -27,12 +32,14 @@ const AdminDashboard = () => {
     status: "all",
     priority: "all",
     sortBy: "newest",
+    page: 1,
   });
 
   const fetchUsers = async () => {
     try {
-      const { data } = await api.get("/admin/users");
+      const { data } = await api.get(`/admin/users?page=${userPage}`);
       setUsers(data.data || data);
+      if (data.pagination) setUserTotalPages(data.pagination.pages);
     } catch (err) {
       console.error(err);
     }
@@ -43,6 +50,7 @@ const AdminDashboard = () => {
       const queryParams = new URLSearchParams(taskFilters).toString();
       const { data } = await api.get(`/admin/tasks?${queryParams}`);
       setTasks(data.data || data);
+      if (data.pagination) setTaskTotalPages(data.pagination.pages);
     } catch (err) {
       console.error(err);
     }
@@ -50,7 +58,7 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     if (activeTab === "users") fetchUsers();
-  }, [activeTab]);
+  }, [activeTab, userPage]);
 
   useEffect(() => {
     if (activeTab === "tasks") {
@@ -163,7 +171,8 @@ const AdminDashboard = () => {
           )}
           <div className="glass-panel" style={{ overflowX: "auto" }}>
             {activeTab === "users" ? (
-              <table
+              <>
+                <table
                 style={{
                   width: "100%",
                   borderCollapse: "collapse",
@@ -354,8 +363,11 @@ const AdminDashboard = () => {
                   ))}
                 </tbody>
               </table>
+              <Pagination page={userPage} totalPages={userTotalPages} onPageChange={setUserPage} />
+              </>
             ) : (
-              <div
+              <>
+                <div
                 style={{
                   display: "grid",
                   gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
@@ -591,6 +603,8 @@ const AdminDashboard = () => {
                   </div>
                 ))}
               </div>
+              <Pagination page={taskFilters.page || 1} totalPages={taskTotalPages} onPageChange={(newPage) => setTaskFilters({ ...taskFilters, page: newPage })} />
+              </>
             )}
           </div>
         </>

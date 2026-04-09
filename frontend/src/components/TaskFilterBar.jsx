@@ -2,7 +2,7 @@ import { Search, Filter, SortDesc } from 'lucide-react';
 
 const TaskFilterBar = ({ filters, setFilters }) => {
   const handleChange = (e) => {
-    setFilters({ ...filters, [e.target.name]: e.target.value });
+    setFilters({ ...filters, [e.target.name]: e.target.value, page: 1 });
   };
 
   return (
