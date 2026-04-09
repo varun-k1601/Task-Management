@@ -27,14 +27,6 @@ const app = express();
 // Security Middlewares
 app.use(helmet());
 
-// Rate Limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: 'Too many requests from this IP, please try again later.',
-});
-app.use('/api/', limiter);
-
 // Allowed origins for CORS
 const allowedOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173'];
 
@@ -52,6 +44,16 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+
+// Rate Limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message:{
+    message: 'Too many requests from this IP, please try again later.',
+  }
+});
+app.use('/api/', limiter);
 
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/tasks', require('./routes/taskRoutes'));
