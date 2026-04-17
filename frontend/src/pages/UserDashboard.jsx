@@ -86,6 +86,56 @@ const UserDashboard = () => {
     return new Date(dateString) < new Date(new Date().setHours(0,0,0,0));
   };
 
+  const renderTaskCard = (task) => (
+    <div key={task._id} className="glass-card" style={{ display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+        <div>
+          <h3 style={{ margin: 0, fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            {task.title}
+            {task.priority === 'high' && <AlertTriangle size={18} color="var(--danger)" title="High Priority" />}
+          </h3>
+          {task.dueDate && (
+            <div style={{ fontSize: '0.8rem', color: isOverdue(task.dueDate, task.status) ? 'var(--danger)' : 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.25rem', marginTop: '0.25rem' }}>
+              <Clock size={12} /> 
+              {isOverdue(task.dueDate, task.status) ? 'Overdue: ' : 'Due: '}
+              {new Date(task.dueDate).toLocaleDateString()}
+            </div>
+          )}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span 
+            className={`badge`} 
+            style={{ 
+              border: `1px solid ${task.priority === 'high' ? 'var(--danger)' : task.priority === 'medium' ? 'var(--warning)' : 'var(--success)'}`,
+              color: task.priority === 'high' ? 'var(--danger)' : task.priority === 'medium' ? 'var(--warning)' : 'var(--success)'
+            }}
+          >
+            {task.priority}
+          </span>
+          <span 
+            className={`badge badge-${task.status}`} 
+            style={{ cursor: 'pointer' }}
+            onClick={() => handleStatusChange(task._id, task.status)}
+            title="Click to toggle status"
+          >
+            {task.status.replace('-', ' ')}
+          </span>
+        </div>
+      </div>
+      <p style={{ color: 'var(--text-muted)', flexGrow: 1, marginBottom: '1.5rem', whiteSpace: 'pre-wrap' }}>
+        {task.description}
+      </p>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: 'auto', borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
+        <button className="btn btn-secondary" style={{ padding: '0.5rem' }} onClick={() => handleEdit(task)} title="Edit Task">
+          <Edit3 size={16} />
+        </button>
+        <button className="btn btn-danger" style={{ padding: '0.5rem' }} onClick={() => handleDelete(task._id)} title="Delete Task">
+          <Trash2 size={16} />
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <div>
       <h2 style={{ marginBottom: '2rem' }}>My Tasks</h2>
@@ -163,63 +213,29 @@ const UserDashboard = () => {
         </form>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
-        {tasks.map(task => (
-          <div key={task._id} className="glass-card" style={{ display: 'flex', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-              <div>
-                <h3 style={{ margin: 0, fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  {task.title}
-                  {task.priority === 'high' && <AlertTriangle size={18} color="var(--danger)" title="High Priority" />}
-                </h3>
-                {task.dueDate && (
-                  <div style={{ fontSize: '0.8rem', color: isOverdue(task.dueDate, task.status) ? 'var(--danger)' : 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.25rem', marginTop: '0.25rem' }}>
-                    <Clock size={12} /> 
-                    {isOverdue(task.dueDate, task.status) ? 'Overdue: ' : 'Due: '}
-                    {new Date(task.dueDate).toLocaleDateString()}
-                  </div>
-                )}
+      {tasks.filter(t => t.status !== 'completed').length > 0 || tasks.length === 0 ? (
+        <div style={{ marginBottom: '2rem' }}>
+          <h3 style={{ marginBottom: '1rem' }}>Active Tasks</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+            {tasks.filter(t => t.status !== 'completed').map(task => renderTaskCard(task))}
+            {tasks.length === 0 && (
+              <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
+                <CheckCircle size={48} style={{ opacity: 0.5, marginBottom: '1rem' }} />
+                <p>No tasks yet. Create one above!</p>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span 
-                  className={`badge`} 
-                  style={{ 
-                    border: `1px solid ${task.priority === 'high' ? 'var(--danger)' : task.priority === 'medium' ? 'var(--warning)' : 'var(--success)'}`,
-                    color: task.priority === 'high' ? 'var(--danger)' : task.priority === 'medium' ? 'var(--warning)' : 'var(--success)'
-                  }}
-                >
-                  {task.priority}
-                </span>
-                <span 
-                  className={`badge badge-${task.status}`} 
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => handleStatusChange(task._id, task.status)}
-                  title="Click to toggle status"
-                >
-                  {task.status.replace('-', ' ')}
-                </span>
-              </div>
-            </div>
-            <p style={{ color: 'var(--text-muted)', flexGrow: 1, marginBottom: '1.5rem', whiteSpace: 'pre-wrap' }}>
-              {task.description}
-            </p>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: 'auto', borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
-              <button className="btn btn-secondary" style={{ padding: '0.5rem' }} onClick={() => handleEdit(task)} title="Edit Task">
-                <Edit3 size={16} />
-              </button>
-              <button className="btn btn-danger" style={{ padding: '0.5rem' }} onClick={() => handleDelete(task._id)} title="Delete Task">
-                <Trash2 size={16} />
-              </button>
-            </div>
+            )}
           </div>
-        ))}
-        {tasks.length === 0 && (
-          <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
-            <CheckCircle size={48} style={{ opacity: 0.5, marginBottom: '1rem' }} />
-            <p>No tasks yet. Create one above!</p>
+        </div>
+      ) : null}
+
+      {tasks.filter(t => t.status === 'completed').length > 0 && (
+        <div style={{ marginBottom: '2rem' }}>
+          <h3 style={{ marginBottom: '1rem', color: 'var(--text-muted)' }}>Completed Tasks</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem', opacity: 0.7 }}>
+            {tasks.filter(t => t.status === 'completed').map(task => renderTaskCard(task))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
       <Pagination page={filters.page || 1} totalPages={totalPages} onPageChange={(newPage) => setFilters({ ...filters, page: newPage })} />
     </div>
   );

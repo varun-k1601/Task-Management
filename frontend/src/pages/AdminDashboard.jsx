@@ -121,6 +121,235 @@ const AdminDashboard = () => {
     return new Date(dateString) < new Date(new Date().setHours(0, 0, 0, 0));
   };
 
+  const renderAdminTaskCard = (task) => (
+    <div
+      key={task._id}
+      className="glass-card"
+      style={{ display: "flex", flexDirection: "column" }}
+    >
+      {editingTask?._id === task._id ? (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "0.5rem",
+            height: "100%",
+          }}
+        >
+          <input
+            className="input-field"
+            value={editingTask.title}
+            onChange={(e) =>
+              setEditingTask({
+                ...editingTask,
+                title: e.target.value,
+              })
+            }
+          />
+          <select
+            className="input-field"
+            value={editingTask.status}
+            onChange={(e) =>
+              setEditingTask({
+                ...editingTask,
+                status: e.target.value,
+              })
+            }
+          >
+            <option value="pending">Pending</option>
+            <option value="in-progress">In Progress</option>
+            <option value="completed">Completed</option>
+          </select>
+          <select
+            className="input-field"
+            value={editingTask.priority || "medium"}
+            onChange={(e) =>
+              setEditingTask({
+                ...editingTask,
+                priority: e.target.value,
+              })
+            }
+          >
+            <option value="low">Low Priority</option>
+            <option value="medium">Medium Priority</option>
+            <option value="high">High Priority</option>
+          </select>
+          <input
+            type="date"
+            className="input-field"
+            value={
+              editingTask.dueDate
+                ? editingTask.dueDate.split("T")[0]
+                : ""
+            }
+            onChange={(e) =>
+              setEditingTask({
+                ...editingTask,
+                dueDate: e.target.value,
+              })
+            }
+          />
+          <textarea
+            className="input-field"
+            style={{ flexGrow: 1 }}
+            value={editingTask.description}
+            onChange={(e) =>
+              setEditingTask({
+                ...editingTask,
+                description: e.target.value,
+              })
+            }
+          />
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: "0.5rem",
+              marginTop: "1rem",
+            }}
+          >
+            <button
+              className="btn btn-primary"
+              onClick={() =>
+                handleTaskUpdate(task._id, editingTask)
+              }
+            >
+              Save
+            </button>
+            <button
+              className="btn btn-secondary"
+              onClick={() => setEditingTask(null)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              marginBottom: "1rem",
+            }}
+          >
+            <div>
+              <h3
+                style={{
+                  margin: 0,
+                  fontSize: "1.25rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                }}
+              >
+                {task.title}
+                {task.priority === "high" && (
+                  <AlertTriangle
+                    size={18}
+                    color="var(--danger)"
+                    title="High Priority"
+                  />
+                )}
+              </h3>
+              {task.dueDate && (
+                <div
+                  style={{
+                    fontSize: "0.8rem",
+                    color: isOverdue(task.dueDate, task.status)
+                      ? "var(--danger)"
+                      : "var(--text-muted)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.25rem",
+                    marginTop: "0.25rem",
+                  }}
+                >
+                  <Clock size={12} />
+                  {isOverdue(task.dueDate, task.status)
+                    ? "Overdue: "
+                    : "Due: "}
+                  {new Date(task.dueDate).toLocaleDateString()}
+                </div>
+              )}
+            </div>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+              }}
+            >
+              <span
+                className={`badge`}
+                style={{
+                  border: `1px solid ${task.priority === "high" ? "var(--danger)" : task.priority === "medium" ? "var(--warning)" : "var(--success)"}`,
+                  color:
+                    task.priority === "high"
+                      ? "var(--danger)"
+                      : task.priority === "medium"
+                        ? "var(--warning)"
+                        : "var(--success)",
+                }}
+              >
+                {task.priority}
+              </span>
+              <span className={`badge badge-${task.status}`}>
+                {task.status.replace("-", " ")}
+              </span>
+            </div>
+          </div>
+          <div
+            style={{
+              fontSize: "0.8rem",
+              color: "var(--primary)",
+              marginBottom: "1rem",
+            }}
+          >
+            Created by: {task.user?.name || "Unknown"} (
+            {task.user?.email})
+          </div>
+          <p
+            style={{
+              color: "var(--text-muted)",
+              flexGrow: 1,
+              marginBottom: "1.5rem",
+              whiteSpace: "pre-wrap",
+            }}
+          >
+            {task.description}
+          </p>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: "0.5rem",
+              marginTop: "auto",
+              borderTop: "1px solid var(--border)",
+              paddingTop: "1rem",
+            }}
+          >
+            <button
+              className="btn btn-secondary"
+              style={{ padding: "0.5rem" }}
+              onClick={() => setEditingTask({ ...task })}
+            >
+              <Edit3 size={16} />
+            </button>
+            <button
+              className="btn btn-danger"
+              style={{ padding: "0.5rem" }}
+              onClick={() => handleTaskDelete(task._id)}
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+
   return (
     <div>
       <div
@@ -367,242 +596,42 @@ const AdminDashboard = () => {
               </>
             ) : (
               <>
-                <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-                  gap: "1.5rem",
-                }}
-              >
-                {tasks.map((task) => (
-                  <div
-                    key={task._id}
-                    className="glass-card"
-                    style={{ display: "flex", flexDirection: "column" }}
-                  >
-                    {editingTask?._id === task._id ? (
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: "0.5rem",
-                          height: "100%",
-                        }}
-                      >
-                        <input
-                          className="input-field"
-                          value={editingTask.title}
-                          onChange={(e) =>
-                            setEditingTask({
-                              ...editingTask,
-                              title: e.target.value,
-                            })
-                          }
-                        />
-                        <select
-                          className="input-field"
-                          value={editingTask.status}
-                          onChange={(e) =>
-                            setEditingTask({
-                              ...editingTask,
-                              status: e.target.value,
-                            })
-                          }
-                        >
-                          <option value="pending">Pending</option>
-                          <option value="in-progress">In Progress</option>
-                          <option value="completed">Completed</option>
-                        </select>
-                        <select
-                          className="input-field"
-                          value={editingTask.priority || "medium"}
-                          onChange={(e) =>
-                            setEditingTask({
-                              ...editingTask,
-                              priority: e.target.value,
-                            })
-                          }
-                        >
-                          <option value="low">Low Priority</option>
-                          <option value="medium">Medium Priority</option>
-                          <option value="high">High Priority</option>
-                        </select>
-                        <input
-                          type="date"
-                          className="input-field"
-                          value={
-                            editingTask.dueDate
-                              ? editingTask.dueDate.split("T")[0]
-                              : ""
-                          }
-                          onChange={(e) =>
-                            setEditingTask({
-                              ...editingTask,
-                              dueDate: e.target.value,
-                            })
-                          }
-                        />
-                        <textarea
-                          className="input-field"
-                          style={{ flexGrow: 1 }}
-                          value={editingTask.description}
-                          onChange={(e) =>
-                            setEditingTask({
-                              ...editingTask,
-                              description: e.target.value,
-                            })
-                          }
-                        />
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "flex-end",
-                            gap: "0.5rem",
-                            marginTop: "1rem",
-                          }}
-                        >
-                          <button
-                            className="btn btn-primary"
-                            onClick={() =>
-                              handleTaskUpdate(task._id, editingTask)
-                            }
-                          >
-                            Save
-                          </button>
-                          <button
-                            className="btn btn-secondary"
-                            onClick={() => setEditingTask(null)}
-                          >
-                            Cancel
-                          </button>
+                {tasks.filter(t => t.status !== 'completed').length > 0 || tasks.length === 0 ? (
+                  <div style={{ marginBottom: "2rem" }}>
+                    <h3 style={{ marginBottom: "1rem" }}>Active Tasks</h3>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+                        gap: "1.5rem",
+                      }}
+                    >
+                      {tasks.filter(t => t.status !== 'completed').map((task) => renderAdminTaskCard(task))}
+                      {tasks.length === 0 && (
+                        <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
+                          <CheckSquare size={48} style={{ opacity: 0.5, marginBottom: '1rem' }} />
+                          <p>No tasks found.</p>
                         </div>
-                      </div>
-                    ) : (
-                      <>
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "flex-start",
-                            marginBottom: "1rem",
-                          }}
-                        >
-                          <div>
-                            <h3
-                              style={{
-                                margin: 0,
-                                fontSize: "1.25rem",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "0.5rem",
-                              }}
-                            >
-                              {task.title}
-                              {task.priority === "high" && (
-                                <AlertTriangle
-                                  size={18}
-                                  color="var(--danger)"
-                                  title="High Priority"
-                                />
-                              )}
-                            </h3>
-                            {task.dueDate && (
-                              <div
-                                style={{
-                                  fontSize: "0.8rem",
-                                  color: isOverdue(task.dueDate, task.status)
-                                    ? "var(--danger)"
-                                    : "var(--text-muted)",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "0.25rem",
-                                  marginTop: "0.25rem",
-                                }}
-                              >
-                                <Clock size={12} />
-                                {isOverdue(task.dueDate, task.status)
-                                  ? "Overdue: "
-                                  : "Due: "}
-                                {new Date(task.dueDate).toLocaleDateString()}
-                              </div>
-                            )}
-                          </div>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "0.5rem",
-                            }}
-                          >
-                            <span
-                              className={`badge`}
-                              style={{
-                                border: `1px solid ${task.priority === "high" ? "var(--danger)" : task.priority === "medium" ? "var(--warning)" : "var(--success)"}`,
-                                color:
-                                  task.priority === "high"
-                                    ? "var(--danger)"
-                                    : task.priority === "medium"
-                                      ? "var(--warning)"
-                                      : "var(--success)",
-                              }}
-                            >
-                              {task.priority}
-                            </span>
-                            <span className={`badge badge-${task.status}`}>
-                              {task.status.replace("-", " ")}
-                            </span>
-                          </div>
-                        </div>
-                        <div
-                          style={{
-                            fontSize: "0.8rem",
-                            color: "var(--primary)",
-                            marginBottom: "1rem",
-                          }}
-                        >
-                          Created by: {task.user?.name || "Unknown"} (
-                          {task.user?.email})
-                        </div>
-                        <p
-                          style={{
-                            color: "var(--text-muted)",
-                            flexGrow: 1,
-                            marginBottom: "1.5rem",
-                            whiteSpace: "pre-wrap",
-                          }}
-                        >
-                          {task.description}
-                        </p>
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "flex-end",
-                            gap: "0.5rem",
-                            marginTop: "auto",
-                            borderTop: "1px solid var(--border)",
-                            paddingTop: "1rem",
-                          }}
-                        >
-                          <button
-                            className="btn btn-secondary"
-                            style={{ padding: "0.5rem" }}
-                            onClick={() => setEditingTask({ ...task })}
-                          >
-                            <Edit3 size={16} />
-                          </button>
-                          <button
-                            className="btn btn-danger"
-                            style={{ padding: "0.5rem" }}
-                            onClick={() => handleTaskDelete(task._id)}
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </>
-                    )}
+                      )}
+                    </div>
                   </div>
-                ))}
-              </div>
+                ) : null}
+
+                {tasks.filter(t => t.status === 'completed').length > 0 && (
+                  <div style={{ marginBottom: "2rem" }}>
+                    <h3 style={{ marginBottom: "1rem", color: "var(--text-muted)" }}>Completed Tasks</h3>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+                        gap: "1.5rem",
+                        opacity: 0.7
+                      }}
+                    >
+                      {tasks.filter(t => t.status === 'completed').map((task) => renderAdminTaskCard(task))}
+                    </div>
+                  </div>
+                )}
               <Pagination page={taskFilters.page || 1} totalPages={taskTotalPages} onPageChange={(newPage) => setTaskFilters({ ...taskFilters, page: newPage })} />
               </>
             )}
